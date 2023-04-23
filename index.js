@@ -65,6 +65,10 @@ const generateRandomString = (length) => {
 
 const stateKey = "spotify_auth_state";
 
+app.get("/", (req, res) => {
+  res.send("Statify Backend by Alan Zhan");
+});
+
 app.get("/login", (req, res) => {
   const state = generateRandomString(16);
   res.cookie(stateKey, state);
