@@ -20,9 +20,9 @@ var scopes = [
   "ugc-image-upload",
 ];
 
-const API_BASE = process.env.APP_API_BASE || "http://localhost:3001";
+const API_BASE = process.env.APP_API_BASE;
 
-const SITE_URL = process.env.APP_SITE_URL || "http://localhost:3000";
+const SITE_URL = process.env.APP_SITE_URL;
 
 const CLIENT_ID = "56a9254bb00a40349299525a0bb6e083";
 const CLIENT_SECRET = "b2972ce0bcd24cc5a8dd475d04465d2e";
