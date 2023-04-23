@@ -16,6 +16,8 @@ var scopes = [
   "user-top-read",
   "user-read-recently-played",
   "user-library-modify",
+  "user-library-read",
+  "ugc-image-upload",
 ];
 const CLIENT_ID = "56a9254bb00a40349299525a0bb6e083";
 const CLIENT_SECRET = "b2972ce0bcd24cc5a8dd475d04465d2e";
@@ -101,11 +103,11 @@ app.get("/callback", (req, res) => {
 
         res.redirect(`http://localhost:3000/?${queryParams}`);
       } else {
-        res.redirect(`/?${querystring.stringify({ error: "invalid_token" })}`);
+        res.redirect(`http://localhost:3000`);
       }
     })
     .catch((error) => {
-      res.send(error);
+      res.redirect(`http://localhost:3000`);
     });
 });
 
@@ -423,4 +425,122 @@ app.get("/user-playlists", (req, res) => {
   });
 });
 
+app.get("/track", (req, res) => {
+  axios({
+    method: "post",
+    url: "https://accounts.spotify.com/api/token",
+    data: querystring.stringify({
+      grant_type: "client_credentials",
+    }),
+    headers: {
+      Authorization: `Basic ${new Buffer.from(
+        `${GEN_ID}:${GEN_SECRET}`
+      ).toString("base64")}`,
+    },
+    json: true,
+  }).then((response) => {
+    var token = response.data.access_token;
+    axios({
+      method: "get",
+      url: `https://api.spotify.com/v1/tracks/${req.query.id}`,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      json: true,
+    })
+      .then((response) => {
+        res.send(response.data);
+      })
+      .catch((error) => {
+        res.send(error);
+      });
+  });
+});
 
+app.get("/recommendations", (req, res) => {
+  axios({
+    method: "post",
+    url: "https://accounts.spotify.com/api/token",
+    data: querystring.stringify({
+      grant_type: "client_credentials",
+    }),
+    headers: {
+      Authorization: `Basic ${new Buffer.from(
+        `${GEN_ID}:${GEN_SECRET}`
+      ).toString("base64")}`,
+    },
+    json: true,
+  }).then((response) => {
+    var token = response.data.access_token;
+    var query = `https://api.spotify.com/v1/recommendations/`;
+    if (
+      req.query.seed_artists &&
+      req.query.seed_artists !== null &&
+      req.query.seed_artists !== undefined
+    ) {
+      query += `?seed_artists=${req.query.seed_artists}`;
+    }
+    if (
+      req.query.seed_genres &&
+      req.query.seed_genres !== null &&
+      req.query.seed_genres !== undefined
+    ) {
+      query += `?seed_genres=${req.query.seed_genres}`;
+    }
+    if (
+      req.query.seed_tracks &&
+      req.query.seed_tracks !== null &&
+      req.query.seed_tracks !== undefined
+    ) {
+      query += `?seed_tracks=${req.query.seed_tracks}`;
+    }
+    query += `&limit=10`;
+    axios({
+      method: "get",
+      url: query,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      json: true,
+    })
+      .then((response) => {
+        res.send(response.data);
+      })
+      .catch((error) => {
+        res.send(error);
+      });
+  });
+}); 
+
+app.get("/search", (req, res) => {
+  console.log("searching for " + req.query.q);
+  axios({
+    method: "post",
+    url: "https://accounts.spotify.com/api/token",
+    data: querystring.stringify({
+      grant_type: "client_credentials",
+    }),
+    headers: {
+      Authorization: `Basic ${new Buffer.from(
+        `${GEN_ID}:${GEN_SECRET}`
+      ).toString("base64")}`,
+    },
+    json: true,
+  }).then((response) => {
+    var token = response.data.access_token;
+    axios({
+      method: "get",
+      url: `https://api.spotify.com/v1/search/?q=${req.query.q}&type=track,artist,album,playlist&limit=50`,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      json: true,
+    })
+      .then((response) => {
+        res.send(response.data);
+      })
+      .catch((error) => {
+        res.send(error);
+      });
+  });
+});
