@@ -19,9 +19,14 @@ var scopes = [
   "user-library-read",
   "ugc-image-upload",
 ];
+
+const API_BASE = process.env.APP_API_BASE || "http://localhost:3001";
+
+const SITE_URL = process.env.APP_SITE_URL || "http://localhost:3000";
+
 const CLIENT_ID = "56a9254bb00a40349299525a0bb6e083";
 const CLIENT_SECRET = "b2972ce0bcd24cc5a8dd475d04465d2e";
-const REDIRECT_URI = "http://localhost:3001/callback";
+const REDIRECT_URI = API_BASE + "/callback";
 
 const GEN_ID = "cf09c982d4d44aeea96938bcfd95de8e";
 const GEN_SECRET = "740b14b6fc8846f791d053c1feb3f54d";
@@ -101,13 +106,13 @@ app.get("/callback", (req, res) => {
           expires_in,
         });
 
-        res.redirect(`http://localhost:3000/?${queryParams}`);
+        res.redirect(`${SITE_URL}/?${queryParams}`);
       } else {
-        res.redirect(`http://localhost:3000`);
+        res.redirect(SITE_URL);
       }
     })
     .catch((error) => {
-      res.redirect(`http://localhost:3000`);
+      res.redirect(SITE_URL);
     });
 });
 
