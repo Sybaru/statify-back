@@ -1,7 +1,27 @@
+import userController from "./users/user-controller";
+
 const express = require("express");
 const cors = require("cors");
 const axios = require("axios");
 const querystring = require("querystring");
+mongoose = require("mongoose"),
+    passport = require("passport"),
+    bodyParser = require("body-parser"),
+    LocalStrategy = require("passport-local"),
+    passportLocalMongoose = 
+        require("passport-local-mongoose")
+
+mongoose.connect("mongodb+srv://<admin>:<erAOTKgz1wHg0H6J>@statifycluster.u1xlsp6.mongodb.net/?retryWrites=true&w=majority");
+
+const app = express();
+
+app.use(cors());
+app.use(express.json());
+
+userController(app);
+
+
+
 
 var scopes = [
   "user-read-private",
@@ -30,8 +50,6 @@ const REDIRECT_URI = API_BASE + "/callback";
 
 const GEN_ID = "cf09c982d4d44aeea96938bcfd95de8e";
 const GEN_SECRET = "740b14b6fc8846f791d053c1feb3f54d";
-
-const app = express();
 
 var user = 0;
 
