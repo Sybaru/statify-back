@@ -11,7 +11,7 @@ var port = process.env.PORT || 3001;
 app.use(express.json());
 app.use(cors());
 
-app.listen(3001, () => {
+app.listen(port, () => {
   console.log("running server");
 });
 
@@ -61,7 +61,7 @@ app.get("/api/users/:spotify", async (req, res) => {
   }
 });
 
-app.post("/api/users", async (req, res) => {
+app.post("/api/makeusers", async (req, res) => {
   try {
     const user = new User(req.body);
     await user.save();
