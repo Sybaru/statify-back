@@ -61,7 +61,7 @@ app.get("/api/users/:spotify", async (req, res) => {
   }
 });
 
-app.post("/api/makeusers:spotify", async (req, res) => {
+app.post("/api/makeusers/:spotify", async (req, res) => {
   try {
     const user = new User({spotify: req.params.spotify});
     await user.save();
