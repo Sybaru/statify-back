@@ -2,6 +2,163 @@ const express = require("express");
 const cors = require("cors");
 const axios = require("axios");
 const querystring = require("querystring");
+const mongoose = require("mongoose");
+
+const app = express();
+
+var port = process.env.PORT || 3001;
+
+app.use(express.json());
+app.use(cors());
+
+app.listen(3001, () => {
+  console.log("running server");
+});
+
+mongoose
+  .connect(
+    "mongodb+srv://admin:IODqlBMVW2SLTdpI@statifycluster.u1xlsp6.mongodb.net/?retryWrites=true&w=majority",
+    {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    }
+  )
+  .then(() => console.log("MongoDB connected..."))
+  .catch((err) => console.log(err));
+
+const userSchema = new mongoose.Schema({
+  spotify: { type: String, required: true },
+  admin: { type: Boolean, default: false },
+});
+
+const reviewSchema = new mongoose.Schema({
+  user: { type: String, required: true },
+  type: { type: String, required: true },
+  reviewedId: { type: String, required: true },
+  review: { type: String, required: true },
+  liked: { type: Boolean, required: true },
+});
+
+const User = mongoose.model("user", userSchema);
+
+const Review = mongoose.model("review", reviewSchema);
+
+app.get("/api/users", async (req, res) => {
+  try {
+    const users = await User.find({});
+    res.send(users);
+  } catch (err) {
+    res.send("Error " + err);
+  }
+});
+
+app.get("/api/users/:spotify", async (req, res) => {
+  try {
+    const user = await User.findOne({ spotify: req.params.spotify });
+    res.send(user);
+  } catch (err) {
+    res.send("Error");
+  }
+});
+
+app.post("/api/users", async (req, res) => {
+  try {
+    const user = new User(req.body);
+    await user.save();
+    res.send(user);
+  } catch (err) {
+    res.send("Error");
+  }
+});
+
+app.put("/api/users/admin", async (req, res) => {
+  try {
+    const user = await User.updateOne(
+      { spotify: req.body.spotify },
+      { $set: { admin: req.body.admin } }
+    );
+    res.send(user);
+  } catch (err) {
+    res.send("Error");
+  }
+});
+
+app.get("/api/reviews", async (req, res) => {
+  try {
+    const reviews = await Review.find({});
+    res.send(reviews);
+  } catch (err) {
+    res.send("Error " + err);
+  }
+});
+
+app.get("/api/reviews/:user", async (req, res) => {
+  try {
+    const reviews = await Review.find({ user: req.params.user });
+    res.send(reviews);
+  } catch (err) {
+    res.send("Error");
+  }
+});
+
+app.get("/api/trackreviews/:id", async (req, res) => {
+  try {
+    const reviews = await Review.find({
+      type: "track",
+      reviewedId: req.params.id,
+    }).exec();
+    res.send(reviews);
+  } catch (err) {
+    res.send("Error");
+  }
+});
+
+app.get("/api/albumreviews/:id", async (req, res) => {
+  try {
+    const reviews = await Review.find({
+      type: "album",
+      reviewedId: req.params.id,
+    }).exec();
+    res.send(reviews);
+  } catch (err) {
+    res.send("Error");
+  }
+});
+
+
+
+app.post("/api/reviews", async (req, res) => {
+  try {
+    console.log(req.body);
+    const review = new Review(req.body);
+    await review.save();
+    res.send(review);
+  } catch (err) {
+    res.send("Error");
+  }
+});
+
+app.put("/api/editreviews/:id", async (req, res) => {
+  try {
+    console.log(req.body);
+    const review = await Review.findByIdAndUpdate(req.params.id, req.body);
+    await review.save();
+    res.send(review);
+  } catch (err) {
+    res.send("Error");
+  }
+});
+
+app.delete("/api/deletereviews/:id", async (req, res) => {
+  try {
+    console.log(req.body);
+    const review = await Review.findByIdAndDelete(req.params.id);
+    if (!review) res.status(404).send("No item found");
+    res.status(200).send();
+  } catch (err) {
+    res.send("Error");
+  }
+});
 
 var scopes = [
   "user-read-private",
@@ -20,9 +177,9 @@ var scopes = [
   "ugc-image-upload",
 ];
 
-const API_BASE = process.env.APP_API_BASE;
+const API_BASE = process.env.APP_API_BASE || "http://localhost:3001";
 
-const SITE_URL = process.env.APP_SITE_URL;
+const SITE_URL = process.env.APP_SITE_URL || "http://localhost:3000";
 
 const CLIENT_ID = "56a9254bb00a40349299525a0bb6e083";
 const CLIENT_SECRET = "b2972ce0bcd24cc5a8dd475d04465d2e";
@@ -30,28 +187,6 @@ const REDIRECT_URI = API_BASE + "/callback";
 
 const GEN_ID = "cf09c982d4d44aeea96938bcfd95de8e";
 const GEN_SECRET = "740b14b6fc8846f791d053c1feb3f54d";
-
-const app = express();
-
-var user = 0;
-
-function setUser(value) {
-  console.log(user);
-  user = value;
-}
-
-function getUser() {
-  return user;
-}
-
-var port = process.env.PORT || 3001;
-
-app.use(express.json());
-app.use(cors());
-
-app.listen(3001, () => {
-  console.log("running server");
-});
 
 const generateRandomString = (length) => {
   let text = "";
@@ -519,7 +654,7 @@ app.get("/recommendations", (req, res) => {
         res.send(error);
       });
   });
-}); 
+});
 
 app.get("/search", (req, res) => {
   console.log("searching for " + req.query.q);
